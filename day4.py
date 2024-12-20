@@ -25,7 +25,7 @@ with open('in.txt', 'r') as file:
     for i in range(len(matrix)):
         for j in range(len(matrix[i])):
             
-            s += search(i, j, 'XMAS', matrix, 0, 1)
+            s += search(i, j, 'XMAS', matrix, 0, 1
             s += search(i, j, 'XMAS', matrix, 0, -1)
 
 

@@ -1,9 +1,91 @@
+from copy import deepcopy
+
+
 s=0
 
 def in_(i,j, matrix):
     return 0 <= i < len(matrix) and 0 <= j < len(matrix[0]) 
 
-def calculate_per(i, j, region, seen, matrix, activations):
+def in_2(i,j, matrix):
+    if 0 <= i < len(matrix) and 0 <= j < len(matrix[0]):
+        return matrix[i][j]
+    else:
+        return ''
+
+def place_wall(direction, i, j, matrix):
+    if not in_(i,j, matrix):
+        return
+    if direction == 'horizontal':
+        if matrix[i][j] == '_':
+            matrix[i][j] = '+'
+        else:
+            matrix[i][j] = '|'
+    else:
+        if matrix[i][j] == '|':
+            matrix[i][j] = '+'
+        else:
+            matrix[i][j] = '_'
+
+def traverse(matrix, region):
+    tot = 0
+    
+    for i in range(0, len(matrix), 2):
+        curr = False
+        direction = None
+        for j in range(1, len(matrix), 2):
+            if matrix[i][j] == " " or matrix[i][j] == '|':
+                direction = None
+                if curr:
+                    tot += 1
+                curr = False
+            elif matrix[i][j] == '_' or matrix[i][j] == '+':
+                curr = True
+                if in_2(i+1,j, matrix) == region:
+                    if direction != True and direction != None:
+                        tot += 1
+                    direction = True
+                else:
+                    if direction != False and direction != None:
+                        tot += 1
+                    direction = False
+                    
+            else:
+                curr=True
+
+        if curr:
+            tot += 1
+
+    for j in range(0, len(matrix), 2):
+        curr = False
+        direction = None
+        for i in range(1, len(matrix), 2):
+
+            if matrix[i][j] == " " or matrix[i][j] == '_':
+                direction = None
+                if curr:
+                    tot += 1
+                curr = False
+            elif matrix[i][j] == '|' or matrix[i][j] == '+':
+                curr = True
+                if in_2(i,j+1, matrix) == region:
+                    if direction != True and direction != None:
+                        tot += 1
+                    direction = True
+                else:
+                    if direction != False and direction != None:
+                        tot += 1
+                    direction = False
+            else:
+                curr=True
+        if curr:
+            tot += 1
+
+    # for row in matrix:
+    #     print(row)
+        
+    return tot
+                
+def calculate_per(i, j, region, seen, matrix ):
     per = 0
     area = 0
     
@@ -12,108 +94,87 @@ def calculate_per(i, j, region, seen, matrix, activations):
     else:
         seen.add((i,j))
 
-    act = [False, False, False, False]
-    act[0] = activations[(i,j-1)][0] or activations[(i,j-1)][0]
-    act[1] = activations[(i,j-1)][1] or activations[(i,j+1)][1]
-    act[2] = activations[(i+1,j)][2] or activations[(i-1,j)][2]
-    act[3] = activations[(i+1,j)][3] or activations[(i-1,j)][3]
-    gauche = act[0]
-    droite = act[1]
-    top = act[2]
-    down = act[3]
-
-    if in_(i - 1, j, matrix):
-        if matrix[i-1][j] == region:
-            val = calculate_per(i-1, j, region, seen, matrix, activations)
+    if in_(i - 2, j, matrix):
+        if matrix[i-2][j] == region:
+            val = calculate_per(i-2, j, region, seen, matrix )
             per += val[0]
             area += val[1]
         else:
-            if not gauche:
-                per += 1
-                act[0] = True
+            place_wall('vertical', i-1, j, matrix)
     else:
-        if not gauche:
-            per += 1
-            act[0] = True
+        place_wall('vertical', i-1, j, matrix)
 
-    if in_(i + 1, j, matrix):
-        if matrix[i+1][j] == region:
-            val = calculate_per(i+1, j, region, seen, matrix, activations)
+    if in_(i + 2, j, matrix):
+        if matrix[i+2][j] == region:
+            val = calculate_per(i+2, j, region, seen, matrix )
             per += val[0]
             area += val[1]
         else:
-            if not droite:
-                per += 1
-                act[1] = True
+            place_wall('vertical', i+1, j, matrix)
     else:
-        if not droite:
-            per += 1
-            act[1] = True
+        place_wall('vertical', i+1, j, matrix)
 
-    if in_(i, j+1, matrix):
-        if matrix[i][j+1] == region:
-            val = calculate_per(i, j+1, region, seen, matrix, activations)
-            per += val[0]
-            area += val[1]
-
-            
-
-        else:
-            if j+1 not in column:
-                per += 1
-                column.add(j+1)
-
-    else:
-        if j+1 not in column:
-                per += 1
-                column.add(j+1)
-
-    if in_(i, j - 1, matrix):
-        if matrix[i][j-1] == region:
-            val = calculate_per(i, j - 1, region, seen, matrix, activations)
+    if in_(i, j+2, matrix):
+        if matrix[i][j+2] == region:
+            val = calculate_per(i, j+2, region, seen, matrix )
             per += val[0]
             area += val[1]
         else:
-            if j not in column:
-                per += 1
-                column.add(j)
+            place_wall('horizontal', i, j+1, matrix)
     else:
-        if j not in column:
-                per += 1
-                column.add(j)
+        place_wall('horizontal', i, j+1, matrix)
+
+
+    if in_(i, j - 2, matrix):
+        if matrix[i][j-2] == region:
+            val = calculate_per(i, j - 2, region, seen, matrix )
+            per += val[0]
+            area += val[1]
+        else:
+            place_wall('horizontal', i, j-1, matrix)
+
+    else:
+        place_wall('horizontal', i, j-1, matrix)
 
     return (per, area + 1)
     
 
 matrix = []
-with open('in3.txt', 'r') as file:
+with open('in5.txt', 'r') as file:
+
     for line in file:
         line = line.strip()
-        matrix.append(line)
+        row = []
+        for i in range(len(line)*2 + 1):
+            if i % 2 == 0:
+                row.append(' ')
+            else:
+                row.append(line[i//2])
+        matrix.append(row)
+        matrix.append([' ' for x in range(len(matrix[0]))])
 
+    matrix.insert(0, [' ' for x in range(len(matrix[0]))])
 
 seen = set()
 prices = {}
-for i in range(len(matrix)):
-    for j in range(len(matrix[0])):
-        rows = set()
-        columns = set()
-        val = calculate_per(i, j, matrix[i][j], seen, matrix, rows, columns)
-        perms = val[0]
-        # for v in rows:
-        #     for i in range(len(matrix[0])):
-        #         if in_(v, i, matrix) and in_(v,i+1, matrix):
-        #             if matrix[v][i] == matrix[v][i+1]:
-        #                 perms += 1
-        # for v in columns:
-        #     for i in range(len(matrix)):
-        #         if in_(i, v, matrix) and in_(i+1,v, matrix):
-        #             if matrix[i][v] == matrix[i+1][v]:
-        #                 perms += 1
 
+
+for i in range(1,len(matrix), 2):
+    for j in range(1,len(matrix[0]),2):
+
+        m = deepcopy(matrix)
+        val = calculate_per(i, j, matrix[i][j], seen, m)
+        perms = traverse(m, matrix[i][j])
+        
         curr = dict.get(prices, matrix[i][j],(0,0))
+        # if perms != 0:
+        #     print(perms, val[1],m[i][j])
+        #     for row in m:
+        #         print(row)
         s += perms*val[1]
         #prices[matrix[i][j]] = (curr[0] + val[0], curr[1] + val[1])
+    print(str(i) + '/' + str(len(matrix)))
+    
 
 # for k in prices:
 #     s += prices[k][0] * prices[k][1]
